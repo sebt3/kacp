@@ -1,0 +1,216 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: kubeauthenticationconfigurations.kacp.solidite.fr
+spec:
+  group: kacp.solidite.fr
+  names:
+    categories: []
+    kind: KubeAuthenticationConfiguration
+    plural: kubeauthenticationconfigurations
+    shortNames:
+    - kacp
+    singular: kubeauthenticationconfiguration
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns: []
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: Custom resource representing a AuthenticationConfiguration for kube-api-server
+        properties:
+          spec:
+            description: Describe the specification of a KubeAuthenticationConfiguration
+            properties:
+              claimMappings:
+                description: Define the how to map a claim to a user
+                nullable: true
+                properties:
+                  extra:
+                    description: extra attributes to be added to the UserInfo object. Keys must be domain-prefix path and must be unique.
+                    items:
+                      description: extra attributes to be added to the UserInfo object. Keys must be domain-prefix path and must be unique.
+                      properties:
+                        key:
+                          description: Identifier of the extra value
+                          type: string
+                        valueExpression:
+                          description: valueExpression is a CEL expression that evaluates to a string or a list of strings.
+                          type: string
+                      required:
+                      - key
+                      - valueExpression
+                      type: object
+                    nullable: true
+                    type: array
+                  groups:
+                    description: groups represents an option for the groups attribute
+                    nullable: true
+                    properties:
+                      claim:
+                        description: Same as --oidc-groups-claim. Mutually exclusive with groups.expression.
+                        nullable: true
+                        type: string
+                      expression:
+                        description: Mutually exclusive with groups.claim and groups.prefix. Expression is a CEL expression that evaluates to a string or a list of strings.
+                        nullable: true
+                        type: string
+                      prefix:
+                        description: Same as --oidc-groups-prefix. Mutually exclusive with groups.expression. if groups.claim is set, groups.prefix is required. Explicitly set it to "" if no prefix is desired.
+                        nullable: true
+                        type: string
+                    type: object
+                  uid:
+                    description: uid represents an option for the uid attribute.
+                    nullable: true
+                    properties:
+                      claim:
+                        description: Mutually exclusive with uid.expression.
+                        nullable: true
+                        type: string
+                      expression:
+                        description: Mutually exclusive with uid.claim. expression is a CEL expression that evaluates to a string.
+                        nullable: true
+                        type: string
+                    type: object
+                  username:
+                    description: username represents an option for the username attribute.
+                    nullable: true
+                    properties:
+                      claim:
+                        description: Same as --oidc-username-claim. Mutually exclusive with username.expression.
+                        nullable: true
+                        type: string
+                      expression:
+                        description: Mutually exclusive with username.claim and username.prefix. Expression is a CEL expression that evaluates to a string.
+                        nullable: true
+                        type: string
+                      prefix:
+                        description: Same as --oidc-username-prefix. Mutually exclusive with username.expression. if username.claim is set, username.prefix is required. Explicitly set it to "" if no prefix is desired.
+                        nullable: true
+                        type: string
+                    type: object
+                type: object
+              claimValidationRules:
+                description: rules applied to validate token claims to authenticate users.
+                items:
+                  description: rules applied to validate token claims to authenticate users.
+                  properties:
+                    claim:
+                      description: Same as --oidc-required-claim key=value.
+                      nullable: true
+                      type: string
+                    expression:
+                      description: Instead of claim and requiredValue, you can use expression to validate the claim. expression is a CEL expression that evaluates to a boolean.
+                      nullable: true
+                      type: string
+                    message:
+                      description: Message customizes the error message seen in the API server logs when the validation fails.
+                      nullable: true
+                      type: string
+                    requiredValue:
+                      nullable: true
+                      type: string
+                  type: object
+                nullable: true
+                type: array
+              issuer:
+                description: Define the OIDC issuer
+                properties:
+                  audiences:
+                    description: audiences is the set of acceptable audiences the JWT must be issued to. At least one of the entries must match the "aud" claim in presented JWTs. (oidc-client-id)
+                    items:
+                      type: string
+                    type: array
+                  certificateAuthority:
+                    description: PEM encoded CA certificates used to validate the connection when fetching discovery information. If not set, the system verifier will be used.
+                    nullable: true
+                    type: string
+                  discoveryURL:
+                    description: discoveryURL, if specified, overrides the URL used to fetch discovery information instead of using "{url}/.well-known/openid-configuration".
+                    nullable: true
+                    type: string
+                  url:
+                    description: url must be unique across all authenticators
+                    type: string
+                required:
+                - audiences
+                - url
+                type: object
+              userValidationRules:
+                description: validation rules applied to the final user object.
+                items:
+                  description: validation rules applied to the final user object.
+                  properties:
+                    expression:
+                      description: expression is a CEL expression that evaluates to a boolean. all the expressions must evaluate to true for the user to be valid.
+                      type: string
+                    message:
+                      description: Message customizes the error message seen in the API server logs when the validation fails.
+                      type: string
+                  required:
+                  - expression
+                  - message
+                  type: object
+                nullable: true
+                type: array
+            required:
+            - issuer
+            type: object
+          status:
+            description: The status object of `KubeAuthenticationConfiguration`
+            nullable: true
+            properties:
+              conditions:
+                items:
+                  description: ApplicationCondition contains details about an application condition, which is usually an error or warning
+                  properties:
+                    generation:
+                      description: Generation for that status on that node
+                      format: int64
+                      type: integer
+                    lastTransitionTime:
+                      description: LastTransitionTime is the time the condition was last observed
+                      format: date-time
+                      nullable: true
+                      type: string
+                    message:
+                      description: Message contains human-readable message indicating details about condition
+                      type: string
+                    node:
+                      description: Node on which apply the status
+                      type: string
+                    status:
+                      description: Status ("True" or "False") describe if the condition is enbled
+                      enum:
+                      - 'True'
+                      - 'False'
+                      type: string
+                    type:
+                      description: Type is an application condition type
+                      enum:
+                      - Ready
+                      - MissingAudiance
+                      - InvalidClaimValidationRule
+                      - InvalidUsernameMapping
+                      - InvalidGroupMapping
+                      type: string
+                  required:
+                  - generation
+                  - message
+                  - node
+                  - status
+                  - type
+                  type: object
+                type: array
+            required:
+            - conditions
+            type: object
+        required:
+        - spec
+        title: Kacp
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
