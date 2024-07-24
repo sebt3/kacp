@@ -20,8 +20,15 @@ spec:
     spec:
       containers:
       - name: kacp
-        image: docker.io/sebt3/kacp:latest@sha256:97c23ab1b08e63a2c93601683977d5d5382004e07781679fb4e1af224dcc767b
+        image: docker.io/sebt3/kacp:0.5.0
         imagePullPolicy: IfNotPresent
+        env:
+        - name: CONTROLLER_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: TARGET_FILE
+          value: "/etc/kubernetes/config/AuthenticationConfiguration.yaml"
         ports:
         - containerPort: 8080
           name: http
