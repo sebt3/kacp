@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: kacp
+    app.kubernetes.io/name: kacp
+  name: kacp
+  namespace: kube-system
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: kacp
+      app.kubernetes.io/name: kacp
+  template:
+    metadata:
+      labels:
+        app: kacp
+        app.kubernetes.io/name: kacp
+    spec:
+      containers:
+      - name: kacp
+        image: docker.io/sebt3/kacp:latest@sha256:97c23ab1b08e63a2c93601683977d5d5382004e07781679fb4e1af224dcc767b
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 100Mi
+        securityContext:
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/kubernetes/config
+          name: auth-cfg
+        - mountPath: /etc/kacp/kacp.yaml
+          name: config
+          subPath: kacp.yaml
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      restartPolicy: Always
+      serviceAccount: kacp
+      serviceAccountName: kacp
+      securityContext:
+        fsGroup: 0
+        runAsGroup: 0
+        runAsNonRoot: true
+        runAsUser: 0
+      tolerations:
+      - operator: Exists
+      volumes:
+      - hostPath:
+          path: /etc/kubernetes/config
+          type: ""
+        name: auth-cfg
+      - name: config
+        configMap:
+          defaultMode: 292
+          items:
+          - key: kacp.yaml
+            path: kacp.yaml
+          name: kacp-config

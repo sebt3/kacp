@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kacp-config
+  labels:
+    app: kacp
+    app.kubernetes.io/name: kacp
+  namespace: kube-system
+data:
+  kacp.yaml: |-
+    ---
+    extraUserValidationRules:
+    - expression: "!user.username.startsWith('system:')"
+      message: 'username cannot used reserved system: prefix'
+    - expression: "user.groups.all(group, !group.startsWith('system:'))"
+      message: 'groups cannot used reserved system: prefix'
+
