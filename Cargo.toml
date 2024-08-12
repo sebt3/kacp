@@ -40,7 +40,7 @@ name = "controller"
 path = "src/lib.rs"
 
 [dependencies]
-actix-web = "4.4.0"
+actix-web = "4.9.0"
 futures = "0.3.28"
 tokio = { version = "1.32.0", features = ["macros", "rt-multi-thread"] }
 k8s-openapi = { version = "0.22.0", features = ["latest"] }
